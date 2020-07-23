@@ -1,8 +1,9 @@
 from evtx import PyEvtxParser
 import json
 import datetime
+from elasticsearch import helpers, Elasticsearch
 
-# This file is parsing the evtx file
+# This file is parsing the evtx file and ingesting into elasticsearch
 
 
 # Parse Date to Python object ISO 8601/ RFC3339
@@ -43,7 +44,7 @@ def get_section(item):
     return output
 
 
-# iterator from evtx-rs for bulk ES indexer
+# iterator from evtx-rs You can use this standalone if you want (ie for splunk)
 def nom_file(filename):
     actions = []
     parser = PyEvtxParser(filename)
@@ -68,3 +69,29 @@ def nom_file(filename):
             '_source': source
         }
         yield action
+
+def prep_es():
+    # connect to es
+    es = Elasticsearch()
+    # set/reset template
+    with open("es_stuff/index-template.json","r") as t_file:
+        template = json.load(t_file)
+    es.indices.put_template(name="evtx-nom",body=template)
+    return es
+
+# elasticsearch ingestorator
+def ingest_file(filename):
+    es = Elasticsearch()
+    start = datetime.datetime.utcnow()
+    errors = 0
+    done = 0
+    for ok, action in helpers.streaming_bulk(
+        client=es, actions=nom_file(filename)
+    ):
+        if not ok:
+            errors += 1
+        done += 1
+    end = datetime.datetime.utcnow()
+    duration = end - start
+    print("Finished Processing {} in {}. ingested {} out of {} events".format(filename,duration,done - errors, done))
+    return {'errors' : errors, 'done' : done}
