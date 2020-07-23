@@ -1,0 +1,21 @@
+{
+    "index_patterns": ["evtx_nom","evtx_nom-*"],
+    "mappings": {
+      "dynamic_templates" : [
+        {"winlog" : {
+          "path_match" : "winlog.*",
+          "match_mapping_type": "string",
+          "mapping" : {
+            "type" : "keyword"
+           }
+        }
+        }
+      ],
+      "properties": {
+      }
+    },
+    "settings" : {
+        "index.refresh_interval" : "10s",
+        "index.mapping.total_fields.limit" : 3000
+    }
+  }

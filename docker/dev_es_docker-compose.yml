@@ -1,0 +1,38 @@
+# DEV ONLY NO SECURITY + LOGGING CONFIGURED BEWARE NOT FOR PROD EVER
+version: "3"
+services:
+  dev-es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.8.0
+    container_name: dev-es
+    environment:
+      - node.name=dev-es
+      - cluster.name=evtx-nom_dev
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es_nom_data:/usr/share/elasticsearch/data
+    ports:
+      - 127.0.0.1:9200:9200
+    networks:
+      - evtx-nom
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.8.0
+    environment:
+      ELASTICSEARCH_HOSTS: http://dev-es:9200
+    networks:
+      - evtx-nom
+    ports:
+      - 5601:5601
+
+volumes:
+  es_nom_data:
+    driver: local
+
+networks:
+  evtx-nom:
+    driver: bridge
