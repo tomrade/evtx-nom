@@ -38,7 +38,6 @@ def get_section(item):
     output = {}
     for field in item:
         value = get_value(item[field])
-        print(field,value)
         if value != None:
             output[field.lower()] = value
     return output
