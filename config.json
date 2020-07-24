@@ -18,6 +18,10 @@
             "es_user" : "USERNAME",
             "es_pass" : "PASSWORD",
             "es_api_key" : "APIKEY"
+        },
+        {
+            "name" : "stdout_nom",
+            "enabled" : false
         }
     ]
 }

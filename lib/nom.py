@@ -4,6 +4,16 @@ import datetime
 from elasticsearch import helpers, Elasticsearch
 
 # This file is parsing the evtx file and any default modules
+class stdout_nom():
+    def __init__(self,config):
+        self.name = "standard out JSON example"
+    def ingest_file(self,filename):
+        print("Starting std (sh)outing on target {}".format(filename))
+        for event in nom_file(filename):
+            print(json.dumps(event,indent=2))
+            print("=" * 12)
+        print("Finished Shouting")
+
 class elastic_nom():
     def __init__(self,config):
         self.name = "elasticseach ingest"
@@ -49,7 +59,7 @@ class elastic_nom():
                 'os' : {"platform" : "windows"}
             }
             action = {
-                '_index': 'evtx_nom',
+                '_index': self.es_index,
                 '_source': source
             }
             yield action
