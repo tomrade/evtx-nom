@@ -7,8 +7,9 @@
             ]
         }
     },
-    "outputs" : {
-        "elasticsearch" : {
+    "outputs" : [
+        {
+            "name" : "elastic_nom",
             "enabled" : true,
             "es_host" : "http://localhost",
             "es_port" : "9200",
@@ -18,5 +19,5 @@
             "es_pass" : "PASSWORD",
             "es_api_key" : "APIKEY"
         }
-    }
+    ]
 }

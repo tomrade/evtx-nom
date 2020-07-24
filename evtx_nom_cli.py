@@ -1,4 +1,4 @@
-from lib.nom import elastic_nom
+from lib import nom
 import json
 import argparse
 import os
@@ -20,9 +20,10 @@ print(target_list)
 
 # Open Plugins
 for output in config['outputs']:
-    if output == "elasticsearch":
+    if output['enabled']:
         #es output
-        nom = elastic_nom(config['outputs'][output])
+        nom_plugin = getattr(nom, output['name'])
+        actioner = nom_plugin(output)
         # Ingest Files
         for target in target_list:
-            nom.ingest_file(target)
+            actioner.ingest_file(target)
