@@ -19,7 +19,9 @@
             "es_pass" : "PASSWORD",
             "es_api_key" : "APIKEY",
             "es_scheme" : "http",
-            "index_template" : "es_stuff/index-template.json"
+            "index_template" : "es_stuff/index-template.json",
+            "ecs_map_file" : "es_stuff/ecs_map.json",
+            "ecs_mode" : true
         },
         {
             "name" : "stdout_nom",

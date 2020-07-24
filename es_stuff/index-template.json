@@ -12,10 +12,11 @@
         }
       ],
       "properties": {
+        "winlog.xml" : {"enabled" : false}
       }
     },
     "settings" : {
-        "index.refresh_interval" : "10s",
+        "index.refresh_interval" : "20s",
         "index.mapping.total_fields.limit" : 3000
     }
   }
