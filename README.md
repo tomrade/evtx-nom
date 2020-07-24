@@ -36,13 +36,18 @@ So far I only have one outout plugin called "elastic_nom"
         {
             "name" : "elastic_nom",
             "enabled" : true,
-            "es_host" : "http://localhost", 
+            "es_host" : "localhost",
             "es_port" : "9200",
             "es_index" : "evtx_nom",
             "security" : "none",
             "es_user" : "USERNAME",
             "es_pass" : "PASSWORD",
-            "es_api_key" : "APIKEY"
+            "es_api_key" : "APIKEY",
+            "es_scheme" : "http"
+        },
+        {
+            "name" : "stdout_nom",
+            "enabled" : false
         }
     ]
 }

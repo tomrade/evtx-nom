@@ -24,10 +24,38 @@ class elastic_nom():
         self.es_user = config['es_user']
         self.es_pass = config['es_pass']
         self.es_api_key = config['es_api_key']
+        self.scheme = config['es_scheme']
         self.prep_es()
+    def get_es(self):  
+        if self.security == "basic":
+            es = Elasticsearch(
+                [self.es_host],
+                http_auth=(self.es_user, self.es_pass),
+                scheme=self.scheme,
+                port=self.es_port,
+            )
+            return es
+        elif self.security == "api":
+            es = Elasticsearch(
+                [self.es_host],
+                api_key=self.es_api_key,
+                scheme=self.scheme,
+                port=self.es_port,
+            )
+            return es
+        elif self.security == "none":
+            es = Elasticsearch(
+                [self.es_host],
+                port=self.es_port,
+                scheme=self.scheme
+            )
+            return es
+        else:
+            print("something has gone with getting an ES client")
+            return None
     def prep_es(self):
         # connect to es
-        es = Elasticsearch()
+        es = self.get_es()
         # set/reset template
         with open("es_stuff/index-template.json","r") as t_file:
             template = json.load(t_file)
@@ -36,7 +64,7 @@ class elastic_nom():
     def ingest_file(self,filename):
         # Process 1 file ah ah ah
         print("Starting work on target {}".format(filename))
-        es = Elasticsearch()
+        es = self.get_es()
         start = datetime.datetime.utcnow()
         errors = 0
         done = 0
