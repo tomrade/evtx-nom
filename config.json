@@ -1,0 +1,22 @@
+{
+    "inputs" : {
+        "directory" : {
+            "enabled" : true,
+            "paths" : [
+                "sample_logs"
+            ]
+        }
+    },
+    "outputs" : {
+        "elasticsearch" : {
+            "enabled" : true,
+            "es_host" : "http://localhost",
+            "es_port" : "9200",
+            "es_index" : "evtx_nom",
+            "security" : "none",
+            "es_user" : "USERNAME",
+            "es_pass" : "PASSWORD",
+            "es_api_key" : "APIKEY"
+        }
+    }
+}
