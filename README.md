@@ -1,7 +1,7 @@
 # evtx-nom
 EVTX log file ingestion (no Windows required) using amazing ![evtx-rs](https://github.com/omerbenamram/evtx) lib. Current target is Elasticsearch with the hope of a modular output in the future.
 
-* ECS common schema output (ive stayed close to winlogbeat however I use lowercase field names under winlog as I feel that is in spirit of ECS better than the Camel Case in winlogbeat)
+* Elasticsearch output uses ECS common schema output (ive stayed close to winlogbeat however I use lowercase field names under winlog as I feel that is in the spirit of ECS better than the Camel Case used in winlogbeat)
 
 
 ## Usage
@@ -20,7 +20,9 @@ Finished Processing sample_logs/Security.evtx in 8 seconds. ingested 31828 out o
 
 ## Config File
 
-So far I only have one outout plugin called "elastic_nom"
+So far I only have one (real) output plugin called "elastic_nom", and a demo json stdout one
+
+You add your input paths to the directory input and then choose one or more outputs.
 
 ``` json
 {
@@ -43,7 +45,8 @@ So far I only have one outout plugin called "elastic_nom"
             "es_user" : "USERNAME",
             "es_pass" : "PASSWORD",
             "es_api_key" : "APIKEY",
-            "es_scheme" : "http"
+            "es_scheme" : "http",
+            "index_template" : "es_stuff/index-template.json"
         },
         {
             "name" : "stdout_nom",
@@ -69,7 +72,8 @@ So far I only have one outout plugin called "elastic_nom"
     "es_user" : "USERNAME",
     "es_pass" : "PASSWORD",
     "es_api_key" : "APIKEY",
-    "es_scheme" : "http"
+    "es_scheme" : "http",
+    "index_template" : "es_stuff/index-template.json"
 }
 ```
 
@@ -85,3 +89,4 @@ So far I only have one outout plugin called "elastic_nom"
 | es_pass | string | elasticsearch security password ( for basic auth)|
 | es_api_key | string | base64 encoded api key (for api auth) |
 | es_scheme| string | http or https (for security you will be using https) |
+| index_template | string | path to index template, ive included one under es_stuff/index-template.json, You do not need to edit this for a custom index name as it will be done by the plugin |

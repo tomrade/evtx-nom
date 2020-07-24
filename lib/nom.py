@@ -4,6 +4,8 @@ import datetime
 from elasticsearch import helpers, Elasticsearch
 
 # This file is parsing the evtx file and any default modules
+
+# Example Standard Out Plugin
 class stdout_nom():
     def __init__(self,config):
         self.name = "standard out JSON example"
@@ -14,6 +16,7 @@ class stdout_nom():
             print("=" * 12)
         print("Finished Shouting")
 
+# Elasticsearch Plugin
 class elastic_nom():
     def __init__(self,config):
         self.name = "elasticseach ingest"
@@ -25,6 +28,7 @@ class elastic_nom():
         self.es_pass = config['es_pass']
         self.es_api_key = config['es_api_key']
         self.scheme = config['es_scheme']
+        self.index_template = config['index_template']
         self.prep_es()
     def get_es(self):  
         if self.security == "basic":
@@ -57,8 +61,11 @@ class elastic_nom():
         # connect to es
         es = self.get_es()
         # set/reset template
-        with open("es_stuff/index-template.json","r") as t_file:
+        with open(self.index_template,"r") as t_file:
             template = json.load(t_file)
+        # If a non default index name add it to the template
+        if self.es_index != 'evtx_nom':
+            template['index_patterns'].append(self.es_index)
         es.indices.put_template(name="evtx-nom",body=template)
         return es
     def ingest_file(self,filename):

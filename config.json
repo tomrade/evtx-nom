@@ -18,7 +18,8 @@
             "es_user" : "USERNAME",
             "es_pass" : "PASSWORD",
             "es_api_key" : "APIKEY",
-            "es_scheme" : "http"
+            "es_scheme" : "http",
+            "index_template" : "es_stuff/index-template.json"
         },
         {
             "name" : "stdout_nom",
