@@ -30,7 +30,7 @@ def get_value(item):
             output = None
         return output
     else:
-        # just a variable
+        # just a variable strings for es as numbers dont make sense at the moment
         output = str(item)
     return output
 
@@ -50,7 +50,6 @@ def nom_file(filename):
     parser = PyEvtxParser(filename)
     # Open Records
     for record in parser.records_json():
-
         #event = {'recordid' : record['event_record_id']}
         data = json.loads(record['data'])
         # Event Log event
@@ -81,6 +80,7 @@ def prep_es():
 
 # elasticsearch ingestorator
 def ingest_file(filename):
+    print("Starting work on target {}".format(filename))
     es = Elasticsearch()
     start = datetime.datetime.utcnow()
     errors = 0
@@ -93,5 +93,5 @@ def ingest_file(filename):
         done += 1
     end = datetime.datetime.utcnow()
     duration = end - start
-    print("Finished Processing {} in {}. ingested {} out of {} events".format(filename,duration,done - errors, done))
+    print("Finished Processing {} in {} seconds. ingested {} out of {} events".format(filename,duration.seconds,done - errors, done))
     return {'errors' : errors, 'done' : done}
