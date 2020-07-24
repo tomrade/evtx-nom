@@ -2,6 +2,7 @@ from lib import nom
 import json
 import argparse
 import os
+import sys
 
 # TODO args etc etc
 
@@ -16,14 +17,17 @@ for path in config['inputs']['directory']['paths']:
         for f in f_names:
             if f.endswith('.evtx'):
                 target_list.append(os.path.join(root, f))
-print(target_list)
 
 # Open Plugins
 for output in config['outputs']:
     if output['enabled']:
         #es output
-        nom_plugin = getattr(nom, output['name'])
-        actioner = nom_plugin(output)
+        try:
+            nom_plugin = getattr(nom, output['name'])
+            actioner = nom_plugin(output)
+        except AttributeError:
+            print("Cannot find module '{}' have you messed up the spelling???".format(output['name']))
+            sys.exit()
         # Ingest Files
         for target in target_list:
             actioner.ingest_file(target)

@@ -6,3 +6,39 @@ EVTX log file ingestion (no Windows required) using amazing ![evtx-rs](https://g
 
 ## Usage
 
+``` bash
+tomm@dev-ubuntu:~/evtx-nom/evtx-nom$ python3 evtx_nom_cli.py 
+Starting work on target sample_logs/Security.evtx
+Finished Processing sample_logs/Security.evtx in 8 seconds. ingested 31828 out of 31828 events
+```
+
+## Config File
+
+So far I only have one outout plugin called "elastic_nom"
+
+``` json
+{
+    "inputs" : {
+        "directory" : {
+            "enabled" : true,
+            "paths" : [
+                "sample_logs"
+            ]
+        }
+    },
+    "outputs" : [
+        {
+            "name" : "elastic_nom",
+            "enabled" : true,
+            "es_host" : "http://localhost", 
+            "es_port" : "9200",
+            "es_index" : "evtx_nom",
+            "security" : "none",
+            "es_user" : "USERNAME",
+            "es_pass" : "PASSWORD",
+            "es_api_key" : "APIKEY"
+        }
+    ]
+}
+
+```
