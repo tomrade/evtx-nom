@@ -6,6 +6,7 @@ import sys
 
 # TODO args etc etc
 
+print("Getting Ready to Nom")
 # Open Config File
 with open('config.json','r') as conf_file:
     config = json.load(conf_file)
@@ -18,16 +19,21 @@ for path in config['inputs']['directory']['paths']:
             if f.endswith('.evtx'):
                 target_list.append(os.path.join(root, f))
 
+print("found {} source files".format(len(target_list)))
+print("=" * 24)
 # Open Plugins
 for output in config['outputs']:
     if output['enabled']:
         #es output
         try:
+            print("Trying '{}' Plugin".format(output['name']))
             nom_plugin = getattr(nom, output['name'])
             actioner = nom_plugin(output)
         except AttributeError:
             print("Cannot find module '{}' have you messed up the spelling???".format(output['name']))
             sys.exit()
         # Ingest Files
+        print("Ingesting files")
         for target in target_list:
             actioner.ingest_file(target)
+        print("=" * 24)

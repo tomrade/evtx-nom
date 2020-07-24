@@ -7,9 +7,14 @@ EVTX log file ingestion (no Windows required) using amazing ![evtx-rs](https://g
 ## Usage
 
 ``` bash
-tomm@dev-ubuntu:~/evtx-nom/evtx-nom$ python3 evtx_nom_cli.py 
+tomm@dev-ubuntu:python3 evtx_nom_cli.py 
+Getting Ready to Nom
+found 1 source files
+========================
+Trying 'elastic_nom' Plugin
+Ingesting files
 Starting work on target sample_logs/Security.evtx
-Finished Processing sample_logs/Security.evtx in 8 seconds. ingested 31828 out of 31828 events
+Finished Processing sample_log
 ```
 
 ## Config File
