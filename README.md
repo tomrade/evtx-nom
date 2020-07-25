@@ -1,5 +1,5 @@
 # evtx-nom
-EVTX log file ingestion (no Windows required) using amazing ![evtx-rs](https://github.com/omerbenamram/evtx) lib. Current output target is Elasticsearch with the hope of a modular output in the future.
+EVTX log file ingestion (no Windows required) using amazing ![evtx rust](https://github.com/omerbenamram/evtx) lib. Current output target is Elasticsearch with the hope of a modular output in the future.
 
 * Elasticsearch output uses ECS common schema output (ive stayed close to winlogbeat however I use lowercase field names under winlog as I feel that is in the spirit of ECS better than the Camel Case used in winlogbeat)
 * ECS mappings are done via a config file you can add your own maps to
@@ -7,7 +7,10 @@ EVTX log file ingestion (no Windows required) using amazing ![evtx-rs](https://g
 
 ## Install
 
-pip install requirements
+* pip install requirements (note there is no wheel for evtx on some platforms for the lastest python. (worked for me on 3.8 python on Ubuntu), if you are desperate to use on a newer version you need to compile evtx from source ![ref](https://github.com/omerbenamram/pyevtx-rs))
+* Clone this repo
+* Edit config "config.json" file
+* Execute "evtx_nom_cli.py"
 
 ## Usage
 
@@ -183,7 +186,7 @@ mapping_dict = {
 
 This is so I can find as match based on "for X in mapping_dict" rather than a nested search tree, im not if this is better/faster or not , but I feel a dictionary check in RAM would be better/faster than a DB even with memcache
 
-#### Example Elasticsearch Doucment "_source"
+#### Example Elasticsearch Document "_source"
 
 ``` json
 {
