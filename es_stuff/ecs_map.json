@@ -2,10 +2,32 @@
     "Security" : {
         "Microsoft-Windows-Security-Auditing" : {
             "4624" :{
-                "event.action" : "user-logon",
                 "event.kind" : "event",
+                "event.action" : "user-logon",
+                "event.category": "authentication",
+                "event.type" : "start",
                 "user.name" : "%%%%winlog.event_data.targetusername",
-                "user.id" : "%%%%winlog.event_data.targetusersid"
+                "user.id" : "%%%%winlog.event_data.targetusersid",
+                "user.domain" : "%%%%winlog.event_data.targetdomainname"
+            },
+            "4672" : {
+                "event.kind" : "event",
+                "event.action" : "user-logon",
+                "event.category": "authentication",
+                "user.name" : "%%%%winlog.event_data.subjectusername",
+                "user.id" : "%%%%winlog.event_data.subjectusersid",
+                "user.domain" : "%%%%winlog.event_data.subjectdomainname"
+            },
+            "4648" : {
+                "event.kind" : "event",
+                "event.action" : "credential-attempt",
+                "event.category": "authentication",
+                "user.name" : "%%%%winlog.event_data.targetusername",
+                "user.domain" : "%%%%winlog.event_data.targetdomainname"
+            },
+            "4799" : {
+                "event.kind" : "event",
+                "event.action" : "group-enumuration"
             }
         }
     }

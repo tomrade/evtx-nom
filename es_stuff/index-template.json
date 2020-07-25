@@ -12,7 +12,7 @@
         }
       ],
       "properties": {
-        "winlog.xml" : {"enabled" : false}
+        "event.original" : {"enabled" : false}
       }
     },
     "settings" : {

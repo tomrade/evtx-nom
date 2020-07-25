@@ -109,9 +109,15 @@ class elastic_nom():
                 '@timestamp' : event['timecreated']['systemtime'],
                 'message' : event['message'],
                 'os' : {"platform" : "windows"},
-                'agent' : {"name" : "evtx-nom"}
+                'log' : {"file" : {"path" : filename}},
+                'agent' : {"name" : "evtx-nom"},
+                'event' : {
+                    "code" : event['eventid'],
+                    "original" : event['raw']
+                    }
             }
             event.pop('message', None)
+            event.pop('raw', None)
             source['winlog'] = event
             # Process the ECS!
             action = {
@@ -254,7 +260,7 @@ def nom_file(filename,welm_map):
                 event['provider']['name']
                 )
         # Raw Document
-        event['xml'] = record['data']
+        event['raw'] = record['data']
         yield event
 
 # make matching key
