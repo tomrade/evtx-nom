@@ -10,9 +10,10 @@ import sys
 class stdout_nom():
     def __init__(self,config):
         self.name = "standard out JSON example"
+        self.welm_map = load_welm_map("welm/welm_map.json")
     def ingest_file(self,filename):
         print("Starting std (sh)outing on target {}".format(filename))
-        for event in nom_file(filename):
+        for event in nom_file(filename,self.welm_map):
             print(json.dumps(event,indent=2))
             print("=" * 12)
         print("Finished Shouting")
@@ -32,10 +33,8 @@ class elastic_nom():
         self.index_template = config['index_template']
         self.ecs_map = self.load_ecs(config['ecs_map_file'])
         self.ecs_mode = config['ecs_mode']
+        self.welm_map = load_welm_map("welm/welm_map.json")
         self.prep_es()
-    def make_key(self,channel,provider,event_id):
-        key = channel + provider + event_id
-        return key.lower()
     def load_ecs(self,filename):
         with open(filename,'r') as in_file:
             data = json.load(in_file)
@@ -44,7 +43,7 @@ class elastic_nom():
         for channel in data:
             for provider in data[channel]:
                 for event_id in data[channel][provider]:
-                    mapping_dict[self.make_key(channel,provider,event_id)] =  data[channel][provider][event_id]
+                    mapping_dict[make_key(channel,provider,event_id)] =  data[channel][provider][event_id]
         return mapping_dict
     def get_es(self):  
         if self.security == "basic":
@@ -86,8 +85,8 @@ class elastic_nom():
         return es
     def ingest_file(self,filename):
         # Process 1 file ah ah ah
-        print("Starting work on target {}".format(filename))
         es = self.get_es()
+        print("Starting work on target {}".format(filename))
         start = datetime.datetime.utcnow()
         errors = 0
         done = 0
@@ -103,13 +102,15 @@ class elastic_nom():
         return {'errors' : errors, 'done' : done}
     def prepare_actions(self,filename):
         # This method is a wrapper around the base nom method to add each event as a bulk index action
-        for event in nom_file(filename):
+        for event in nom_file(filename,self.welm_map):
             source = {
                 '@timestamp' : event['timecreated']['systemtime'],
-                'winlog' : event,
+                'message' : event['message'],
                 'os' : {"platform" : "windows"},
                 'agent' : {"name" : "evtx-nom"}
             }
+            event.pop('message', None)
+            source['winlog'] = event
             # Process the ECS!
             action = {
                 '_index': self.es_index,
@@ -125,7 +126,7 @@ class elastic_nom():
         if not self.ecs_mode:
             return source
         # Take the source document, check if we have an ECS map for it and then if so do the things
-        key = self.make_key(
+        key = make_key(
             source['winlog']['channel'],
             source['winlog']['provider']['name'],
             source['winlog']['eventid']
@@ -211,17 +212,47 @@ def get_section(item):
 
 
 # iterator from evtx-rs You can use this standalone if you want (ie for splunk)
-def nom_file(filename):
+def nom_file(filename,welm_map):
     parser = PyEvtxParser(filename)
     # Open Records
     for record in parser.records_json():
-        #event = {'recordid' : record['event_record_id']}
         data = json.loads(record['data'])
         # Event Log event
         event = {'recordid': str(record['event_record_id'])}
         event.update(get_section(data['Event']['System']))
         if data['Event'].get('EventData'):
             event['event_data'] = get_section(data['Event']['EventData'])
+        key = make_key(
+            event['channel'],
+            event['provider']['name'],
+            event['eventid']
+            )
+        if key in welm_map:
+            event['message'] = welm_map[key]
+        else:
+            event['message'] = "{} | {} | {} | Unknown Message String".format(
+                event['eventid'],
+                event['channel'],
+                event['provider']['name']
+                )
         # Raw Document
         event['xml'] = record['data']
         yield event
+
+# make matching key
+def make_key(channel,provider,event_id):
+    key = channel + provider + event_id
+    return key.lower()
+
+# Load the Welm data
+def load_welm_map(filename):
+    with open(filename,'r') as in_file:
+        data = json.load(in_file)
+    # I think a flat dictionary is better for this sort of thing
+    mapping_dict = {}
+    for channel in data:
+        for provider in data[channel]:
+            for event_id in data[channel][provider]:
+                mapping_dict[make_key(channel,provider,event_id)] =  data[channel][provider][event_id]
+    return mapping_dict
+    
