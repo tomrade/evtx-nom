@@ -3,7 +3,7 @@ EVTX log file ingestion (no Windows required) using amazing ![evtx-rs](https://g
 
 * Elasticsearch output uses ECS common schema output (ive stayed close to winlogbeat however I use lowercase field names under winlog as I feel that is in the spirit of ECS better than the Camel Case used in winlogbeat)
 * ECS mappings are done via a config file you can add your own maps to
-
+* Event log message string reconstruction from the WELM project , where possible the event_data/user_data variables are put back into the string
 
 ## Usage
 
@@ -59,6 +59,37 @@ You add your input paths to the directory input and then choose one or more outp
 }
 
 ```
+
+## WELM Mapping
+
+Ive included a welm dataset here under the welm folder, is currently hardcoded into the script but will add some config later. It is made from the "events.json" file from the WELM project. 
+
+Like my ECS mapping file, it is a JSON file (15mb beware) structured based on channel + provider + event_id. The lookup is done with a composite key like with my ECS mapper on a flat dictionary to hopefully improve speed. Ive trred to include much of the logic in the JSON to reduce the steps I need to do in python at ingest time.
+
+``` json
+      "4418": {
+        "raw": "%1.%2: EFS service failed to provision RMS for EDP. Error code: %3.",
+        "params": [
+          "filenumber",
+          "linenumber",
+          "errorcode"
+        ],
+        "format_string": "{1}.{2}: EFS service failed to provision RMS for EDP. Error code: {3}.",
+        "swap_mode": true
+      }
+```
+
+You can see when I created the dataset I precreated a python "format" string to use and include a "swap_mode" flag so evtx-mode will attempt to do the format when this is true rather than using a "in" lookup or regex on ingest. Python format starts its numbering at 0 rather 1 unlike the event logs however the way I deal with is to bump parameter list in evtx-nom when executing ie
+
+``` python
+["filenumber","linenumber","errorcode"]
+```
+becomes
+
+``` python
+["bump","filenumber","linenumber","errorcode"]
+```
+
 
 ## Plugins
 
