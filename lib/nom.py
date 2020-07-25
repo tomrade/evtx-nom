@@ -181,7 +181,7 @@ class elastic_nom():
 
 # Get values form EVTX-RS json which may be attributes from XML land 
 def get_value(item):
-    if not item:
+    if item != 0 and item == None:
         return None
     if isinstance(item,dict):
         output = {}
@@ -208,6 +208,8 @@ def get_section(item):
         value = get_value(item[field])
         if value != None:
             output[field.lower()] = value
+        if value == 0:
+            output[field.lower()] = str(value)
     return output
 
 
@@ -228,7 +230,21 @@ def nom_file(filename,welm_map):
             event['eventid']
             )
         if key in welm_map:
-            event['message'] = welm_map[key]
+            if welm_map[key]['swap_mode']:
+                if event.get('event_data') or False:
+                    swap_target = 'event_data'
+                elif event.get('user_data') or False:
+                    swap_target = 'user_data'
+                else:
+                    swap_target = None
+                    event['message'] = welm_map[key]['format_string']
+                if swap_target:
+                    swap_values = ['bump']
+                    for param in welm_map[key]['params']:
+                        swap_values.append(event[swap_target].get(param) or "bork")
+                    event['message'] = welm_map[key]['format_string'].format(*swap_values)
+            else:
+                event['message'] = welm_map[key]['format_string']
         else:
             event['message'] = "{} | {} | {} | Unknown Message String".format(
                 event['eventid'],
