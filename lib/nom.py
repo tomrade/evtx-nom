@@ -8,9 +8,10 @@ import sys
 
 # Example Standard Out Plugin
 class stdout_nom():
-    def __init__(self,config):
+    def __init__(self,config,parsing_config):
         self.name = "standard out JSON example"
-        self.welm_map = load_welm_map("welm/welm_map.json")
+        self.welm_map = load_welm_map(parsing_config['welm']['mapping_file'])
+        self.welm_mode = parsing_config['welm']['enabled']
     def ingest_file(self,filename):
         print("Starting std (sh)outing on target {}".format(filename))
         for event in nom_file(filename,self.welm_map):
@@ -20,7 +21,7 @@ class stdout_nom():
 
 # Elasticsearch Plugin
 class elastic_nom():
-    def __init__(self,config):
+    def __init__(self,config,parsing_config):
         self.name = "elasticseach ingest"
         self.es_host = config['es_host']
         self.es_port = config['es_port']
@@ -33,7 +34,8 @@ class elastic_nom():
         self.index_template = config['index_template']
         self.ecs_map = self.load_ecs(config['ecs_map_file'])
         self.ecs_mode = config['ecs_mode']
-        self.welm_map = load_welm_map("welm/welm_map.json")
+        self.welm_map = load_welm_map(parsing_config['welm']['mapping_file'])
+        self.welm_mode = parsing_config['welm']['enabled']
         self.prep_es()
     def load_ecs(self,filename):
         with open(filename,'r') as in_file:

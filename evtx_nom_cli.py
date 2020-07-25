@@ -6,9 +6,15 @@ import sys
 
 # TODO args etc etc
 
+
+parser = argparse.ArgumentParser(description='Ingest EVTX files into Elasticsearch and more')
+parser.add_argument("-c","--config", help="Config File Defaults to config.json", default="config.json")
+args = parser.parse_args()
+
+
 print("Getting Ready to Nom")
 # Open Config File
-with open('config.json','r') as conf_file:
+with open(args.config,'r') as conf_file:
     config = json.load(conf_file)
 
 # Grab All the files
@@ -28,7 +34,7 @@ for output in config['outputs']:
         try:
             print("Trying '{}' Plugin".format(output['name']))
             nom_plugin = getattr(nom, output['name'])
-            actioner = nom_plugin(output)
+            actioner = nom_plugin(output,config['parsing'])
         except AttributeError:
             print("Cannot find module '{}' have you messed up the spelling???".format(output['name']))
             sys.exit()

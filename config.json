@@ -7,6 +7,12 @@
             ]
         }
     },
+    "parsing" : {
+        "welm" : {
+            "enabled" : true,
+            "mapping_file" : "welm/welm_map.json"
+        }
+    },
     "outputs" : [
         {
             "name" : "elastic_nom",
