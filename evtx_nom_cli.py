@@ -28,7 +28,8 @@ for path in config['inputs']['directory']['paths']:
 print("found {} source files".format(len(target_list)))
 print("=" * 24)
 # Open Plugins
-for output in config['outputs']:
+for output_plugin in config['outputs']:
+    output = config['outputs'][output_plugin]
     if output['enabled']:
         #es output
         try:

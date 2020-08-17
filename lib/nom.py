@@ -135,10 +135,10 @@ class elastic_nom():
             return source
         # Take the source document, check if we have an ECS map for it and then if so do the things
         key = make_key(
-            source['winlog']['channel'],
-            source['winlog']['provider']['name'],
-            source['winlog']['eventid']
-            )
+                source['winlog']['channel'],
+                source['winlog']['provider']['name'],
+                source['winlog']['eventid']
+                )
         # check if we have a map
         if key in self.ecs_map:
             # for each ecs field key in the map add it to the source
@@ -194,7 +194,9 @@ def get_value(item):
     if isinstance(item,dict):
         output = {}
         # XML Peeps
-        if '#attributes' in item:
+        if '#text' in item:
+            output = str(item['#text'])
+        elif '#attributes' in item:
             for attr in item['#attributes']:
                 output[attr.lower()] = item['#attributes'][attr]
         # Regular Object
@@ -232,6 +234,12 @@ def nom_file(filename,welm_map):
         event.update(get_section(data['Event']['System']))
         if data['Event'].get('EventData'):
             event['event_data'] = get_section(data['Event']['EventData'])
+        if isinstance(event['eventid'], dict):
+            print(event['eventid'])
+            print("#"*20)
+            print(json.dumps(event,indent=3))
+            print("#"*20)
+            print(json.dumps(data,indent=3))
         key = make_key(
             event['channel'],
             event['provider']['name'],
