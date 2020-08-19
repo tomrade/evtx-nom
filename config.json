@@ -27,7 +27,8 @@
             "es_scheme" : "http",
             "index_template" : "es_stuff/index-template.json",
             "ecs_map_file" : "es_stuff/ecs_map.json",
-            "ecs_mode" : true
+            "ecs_mode" : true,
+            "delete_old_indexes" : true
         },
         "standard_out" : {
             "name" : "stdout_nom",

@@ -36,6 +36,7 @@ class elastic_nom():
         self.ecs_mode = config['ecs_mode']
         self.welm_map = load_welm_map(parsing_config['welm']['mapping_file'])
         self.welm_mode = parsing_config['welm']['enabled']
+        self.delete = config['delete_old_indexes']
         self.prep_es()
     def load_ecs(self,filename):
         with open(filename,'r') as in_file:
@@ -84,6 +85,9 @@ class elastic_nom():
         if self.es_index != 'evtx_nom':
             template['index_patterns'].append(self.es_index)
         es.indices.put_template(name="evtx-nom",body=template)
+        # if option is set, delete existing indexes, todo handle patterns
+        if self.delete:
+            es.indices.delete(index=self.es_index, ignore=[400, 404])
         return es
     def ingest_file(self,filename):
         # Process 1 file ah ah ah
@@ -182,8 +186,8 @@ class elastic_nom():
             new_source = source[key_list[0]]
             key_list.pop(0)
             value = self.dict_fetch(new_source,'.'.join(key_list))
-        else:
-            value = source[key] or "unknown"
+        else:            
+            value = source.get(key) or "bork"
         return value
 
 
@@ -246,7 +250,7 @@ def nom_file(filename,welm_map):
             event['eventid']
             )
         if key in welm_map:
-            if welm_map[key]['swap_mode']:
+            if welm_map[key]['swap_mode'] and welm_map[key]['params'] != []:
                 if event.get('event_data') or False:
                     swap_target = 'event_data'
                 elif event.get('user_data') or False:
@@ -257,7 +261,11 @@ def nom_file(filename,welm_map):
                 if swap_target:
                     swap_values = ['bump']
                     for param in welm_map[key]['params']:
-                        swap_values.append(event[swap_target].get(param) or "bork")
+                        swap_values.append(event[swap_target].get(param) or "")
+                    #print(key)
+                    #print(welm_map[key]['format_string'])
+                    #print(welm_map[key]['params'])
+                    #print(swap_values)
                     event['message'] = welm_map[key]['format_string'].format(*swap_values)
             else:
                 event['message'] = welm_map[key]['format_string']

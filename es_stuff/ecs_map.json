@@ -25,9 +25,85 @@
                 "user.name" : "%%%%winlog.event_data.targetusername",
                 "user.domain" : "%%%%winlog.event_data.targetdomainname"
             },
+            "4798" : {
+                "event.kind" : "event",
+                "event.action": "user-group-enumuration",
+                "user.name": "%%%%winlog.event_data.targetusername",
+                "user.domain" : "%%%%winlog.event_data.targetdomainname"
+            },
             "4799" : {
                 "event.kind" : "event",
-                "event.action" : "group-enumuration"
+                "event.action" : "user-group-enumuration",
+                "user.name": "%%%%winlog.event_data.targetusername",
+                "user.domain" : "%%%%winlog.event_data.targetdomainname"
+            },
+            "5379" : {
+                "event.kind" : "event",
+                "event.action" : "credential-fetch"
+            }
+        }
+    },
+    "System" : {
+        "Service Control Manager" : {
+            "7036" : {
+                "event.kind" : "event",
+                "event.action" : "service-change",
+                "event.category" : "service"
+            },
+            "7040" : {
+                "event.kind" : "event",
+                "event.action" : "service-change",
+                "event.category" : "service",
+                "event.type" : "modify"
+            },
+            "7045" : {
+                "event.kind" : "event",
+                "event.action" : "service-install",
+                "event.category" : "service",
+                "event.type" : "install"
+            }
+        }
+    },
+    "Microsoft-Windows-TaskScheduler/Operational" : {
+        "Microsoft-Windows-TaskScheduler" : {
+            "100" : {
+                "event.kind" : "event",
+                "event.action" : "service-run",
+                "event.category" : "service"
+            },
+            "106" : {
+                "event.kind" : "event",
+                "event.action" : "service-install",
+                "event.category" : "service",
+                "event.type" : "install"
+            },
+            "140" : {
+                "event.kind" : "event",
+                "event.action" : "service-change",
+                "event.category" : "service",
+                "event.type" : "modify"
+            },
+            "141" : {
+                "event.kind" : "event",
+                "event.action" : "service-delete",
+                "event.category" : "service",
+                "event.type" : "delete"
+            }
+        }
+    },
+    "Microsoft-Windows-Partition/Diagnostic" : {
+        "Microsoft-Windows-Partition" : {
+            "1006" : {
+                "event.kind" : "event",
+                "event.action" : "usbkey-insert"
+            }
+        }
+    },
+    "Microsoft-Windows-Hyper-V-VMMS-Admin" : {
+        "Microsoft-Windows-Hyper-V-VMMS" : {
+            "13002" : {
+                "event.kind": "event",
+                "event.action" : "vm-create"
             }
         }
     }

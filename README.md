@@ -44,8 +44,14 @@ You add your input paths to the directory input and then choose one or more outp
             ]
         }
     },
-    "outputs" : [
-        {
+    "parsing" : {
+        "welm" : {
+            "enabled" : true,
+            "mapping_file" : "welm/welm_map.json"
+        }
+    },
+    "outputs" : {
+        "elasticsearch" : {
             "name" : "elastic_nom",
             "enabled" : true,
             "es_host" : "localhost",
@@ -58,13 +64,14 @@ You add your input paths to the directory input and then choose one or more outp
             "es_scheme" : "http",
             "index_template" : "es_stuff/index-template.json",
             "ecs_map_file" : "es_stuff/ecs_map.json",
-            "ecs_mode" : true
+            "ecs_mode" : true,
+            "delete_old_indexes" : true
         },
-        {
+        "standard_out" : {
             "name" : "stdout_nom",
             "enabled" : false
         }
-    ]
+    }
 }
 
 ```
@@ -122,7 +129,8 @@ becomes
             "es_scheme" : "http",
             "index_template" : "es_stuff/index-template.json",
             "ecs_map_file" : "es_stuff/ecs_map.json",
-            "ecs_mode" : true
+            "ecs_mode" : true,
+            "delete_old_indexes" : false
         }
 ```
 
