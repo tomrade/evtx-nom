@@ -113,6 +113,7 @@ class elastic_nom():
                 '@timestamp' : event['timecreated']['systemtime'],
                 'message' : event['message'],
                 'os' : {"platform" : "windows"},
+                'host' : {"hostname" : event['computer'] },
                 'log' : {"file" : {"path" : filename}},
                 'agent' : {"name" : "evtx-nom"},
                 'event' : {
@@ -203,6 +204,9 @@ def get_value(item):
         elif '#attributes' in item:
             for attr in item['#attributes']:
                 output[attr.lower()] = item['#attributes'][attr]
+            for thing in item:
+                if thing != '#attributes':
+                    output[thing.lower()] = item[thing]
         # Regular Object
         else:
             for thing in item:
@@ -238,6 +242,14 @@ def nom_file(filename,welm_map):
         event.update(get_section(data['Event']['System']))
         if data['Event'].get('EventData'):
             event['event_data'] = get_section(data['Event']['EventData'])
+        if data['Event'].get('UserData'):
+            #print(data['Event'].get('UserData'))
+            if data['Event']['UserData'].get('EventXML'):
+                event['event_data'] = get_section(data['Event']['UserData']['EventXML'])
+            else:
+                # not sure about what other namesspaces are here so for now just this loop
+                for ns in data['Event']['UserData']:
+                    event['event_data'] = get_section(data['Event']['UserData'][ns])
         if isinstance(event['eventid'], dict):
             print(event['eventid'])
             print("#"*20)

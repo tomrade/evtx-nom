@@ -27,18 +27,21 @@
             },
             "4798" : {
                 "event.kind" : "event",
+                "event.category": "iam",
                 "event.action": "user-group-enumuration",
                 "user.name": "%%%%winlog.event_data.targetusername",
                 "user.domain" : "%%%%winlog.event_data.targetdomainname"
             },
             "4799" : {
                 "event.kind" : "event",
+                "event.category": "iam",
                 "event.action" : "user-group-enumuration",
                 "user.name": "%%%%winlog.event_data.targetusername",
                 "user.domain" : "%%%%winlog.event_data.targetdomainname"
             },
             "5379" : {
                 "event.kind" : "event",
+                "event.category": "iam",
                 "event.action" : "credential-fetch"
             }
         }
@@ -47,20 +50,24 @@
         "Service Control Manager" : {
             "7036" : {
                 "event.kind" : "event",
-                "event.action" : "service-change",
-                "event.category" : "service"
+                "event.action" : "service-status-change",
+                "event.category" : "package",
+                "event.type" : "change",
+                "package.name" : "%%%%winlog.event_data.param1"
             },
             "7040" : {
                 "event.kind" : "event",
-                "event.action" : "service-change",
-                "event.category" : "service",
-                "event.type" : "modify"
+                "event.action" : "service-modified",
+                "event.category" : "package",
+                "event.type" : "change",
+                "package.name" : "%%%%winlog.event_data.param1"
             },
             "7045" : {
                 "event.kind" : "event",
                 "event.action" : "service-install",
-                "event.category" : "service",
-                "event.type" : "install"
+                "event.category" : "package",
+                "event.type" : "install",
+                "package.name" : "%%%%winlog.event_data.servicename"
             }
         }
     },
@@ -68,25 +75,26 @@
         "Microsoft-Windows-TaskScheduler" : {
             "100" : {
                 "event.kind" : "event",
-                "event.action" : "service-run",
-                "event.category" : "service"
+                "event.action" : "task-run",
+                "event.category" : "package",
+                "event.type" : "start"
             },
             "106" : {
                 "event.kind" : "event",
-                "event.action" : "service-install",
-                "event.category" : "service",
+                "event.action" : "task-install",
+                "event.category" : "package",
                 "event.type" : "install"
             },
             "140" : {
                 "event.kind" : "event",
-                "event.action" : "service-change",
-                "event.category" : "service",
-                "event.type" : "modify"
+                "event.action" : "task-modified",
+                "event.category" : "package",
+                "event.type" : "change"
             },
             "141" : {
                 "event.kind" : "event",
-                "event.action" : "service-delete",
-                "event.category" : "service",
+                "event.action" : "task-delete",
+                "event.category" : "package",
                 "event.type" : "delete"
             }
         }
@@ -95,7 +103,10 @@
         "Microsoft-Windows-Partition" : {
             "1006" : {
                 "event.kind" : "event",
-                "event.action" : "usbkey-insert"
+                "event.action" : "usbkey-insert",
+                "event.category" : "host",
+                "event.type" : "change"
+
             }
         }
     },
@@ -103,7 +114,8 @@
         "Microsoft-Windows-Hyper-V-VMMS" : {
             "13002" : {
                 "event.kind": "event",
-                "event.action" : "vm-create"
+                "event.action" : "vm-create",
+                "event.type" : "change"
             }
         }
     }
