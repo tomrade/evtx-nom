@@ -42,7 +42,8 @@
             "5379" : {
                 "event.kind" : "event",
                 "event.category": "iam",
-                "event.action" : "credential-fetch"
+                "event.action" : "credential-fetch",
+                "event.type" : "access"
             }
         }
     },
@@ -116,6 +117,47 @@
                 "event.kind": "event",
                 "event.action" : "vm-create",
                 "event.type" : "change"
+            }
+        }
+    },
+    "Microsoft-Windows-WMI-Activity/Operational" : {
+        "Microsoft-Windows-WMI-Activity" : {
+            "5857" : {
+                "event.kind": "event",
+                "event.action": "wmi-run",
+                "event.category": "process",
+                "event.type": "access",
+                "process.name": "%%%%winlog.event_data.hostprocess",
+                "process.pid": "%%%%winlog.event_data.processid",
+                "dll.path" :  "%%%%winlog.event_data.providerpath"
+            },
+            "5858" : {
+                "event.kind": "event",
+                "event.action": "wmi-error",
+                "event.category": "process",
+                "event.type": "error",
+                "process.pid": "%%%%winlog.event_data.processid"
+            },
+            "5859" : {
+                "event.kind": "event",
+                "event.action": "wmi-ess-start",
+                "event.category": "process",
+                "event.type": "change",
+                "process.pid": "%%%%winlog.event_data.processid"
+            },
+            "5860" : {
+                "event.kind": "event",
+                "event.action": "wmi-temp-ess-start",
+                "event.category": "process",
+                "event.type": "change",
+                "process.pid": "%%%%winlog.event_data.processid"
+            },
+            "5861" : {
+                "event.kind": "event",
+                "event.action": "wmi-esstoconsumer-start",
+                "event.category": "process",
+                "event.type": "change",
+                "process.pid": "%%%%winlog.event_data.processid"
             }
         }
     }
