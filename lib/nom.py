@@ -278,7 +278,10 @@ def nom_file(filename,welm_map):
                     #print(welm_map[key]['format_string'])
                     #print(welm_map[key]['params'])
                     #print(swap_values)
-                    event['message'] = welm_map[key]['format_string'].format(*swap_values)
+                    try:
+                        event['message'] = welm_map[key]['format_string'].format(*swap_values)
+                    except:
+                        event['message'] = welm_map[key]['format_string']
             else:
                 event['message'] = welm_map[key]['format_string']
         else:
