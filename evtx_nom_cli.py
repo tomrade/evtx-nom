@@ -36,8 +36,9 @@ for output_plugin in config['outputs']:
             print("Trying '{}' Plugin".format(output['name']))
             nom_plugin = getattr(nom, output['name'])
             actioner = nom_plugin(output,config['parsing'])
-        except AttributeError:
-            print("Cannot find module '{}' have you messed up the spelling???".format(output['name']))
+        except AttributeError as errormsg:
+            print("Cannot load module '{}' have you messed up the spelling???".format(output['name']))
+            print(errormsg)
             sys.exit()
         # Ingest Files
         print("Ingesting files")
