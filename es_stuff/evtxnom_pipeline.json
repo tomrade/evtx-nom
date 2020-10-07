@@ -9,6 +9,13 @@
             }
         },
         {
+            "remove": {
+              "if" : "ctx.destination?.ip == '-'",
+              "field": "destination.ip",
+              "ignore_missing": true
+            }
+        },
+        {
             "geoip" : {
               "if" : "ctx.source?.geo == null",
               "field" : "source.ip",

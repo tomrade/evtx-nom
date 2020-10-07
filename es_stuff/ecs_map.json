@@ -24,7 +24,10 @@
                 "event.action" : "credential-attempt",
                 "event.category": "authentication",
                 "user.name" : "%%%%winlog.event_data.targetusername",
-                "user.domain" : "%%%%winlog.event_data.targetdomainname"
+                "user.domain" : "%%%%winlog.event_data.targetdomainname",
+                "destination.ip" : "%%%%winlog.event_data.ipaddress",
+                "destination.domain" : "%%%%winlog.event_data.targetservername",
+                "destination.port" : "%%%%winlog.event_data.ipport"
             },
             "4798" : {
                 "event.kind" : "event",
