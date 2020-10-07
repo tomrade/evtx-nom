@@ -26,6 +26,7 @@
             "es_api_key" : "APIKEY",
             "es_scheme" : "http",
             "index_template" : "es_stuff/index-template.json",
+            "ingest_node_template" : "es_stuff/evtxnom_pipeline.json",
             "ecs_map_file" : "es_stuff/ecs_map.json",
             "ecs_mode" : true,
             "delete_old_indexes" : true

@@ -1,0 +1,81 @@
+{
+    "description" : "EVTXNOM Elasticsearch Ingest Pipeline",
+    "processors" : [
+        {
+            "remove": {
+              "if" : "ctx.source?.ip == '-'",
+              "field": "source.ip",
+              "ignore_missing": true
+            }
+        },
+        {
+            "geoip" : {
+              "if" : "ctx.source?.geo == null",
+              "field" : "source.ip",
+              "target_field" : "source.geo",
+              "ignore_missing" : true
+            }
+          },
+          {
+            "geoip" : {
+              "if" : "ctx.destination?.geo == null",
+              "field" : "destination.ip",
+              "target_field" : "destination.geo",
+              "ignore_missing" : true
+            }
+          },
+          {
+            "geoip" : {
+              "database_file" : "GeoLite2-ASN.mmdb",
+              "field" : "source.ip",
+              "target_field" : "source.as",
+              "properties" : [
+                "asn",
+                "organization_name"
+              ],
+              "ignore_missing" : true
+            }
+          },
+          {
+            "geoip" : {
+              "field" : "destination.ip",
+              "target_field" : "destination.as",
+              "properties" : [
+                "asn",
+                "organization_name"
+              ],
+              "ignore_missing" : true,
+              "database_file" : "GeoLite2-ASN.mmdb"
+            }
+          },
+          {
+            "rename" : {
+              "field" : "source.as.asn",
+              "target_field" : "source.as.number",
+              "ignore_missing" : true
+            }
+          },
+          {
+            "rename" : {
+              "target_field" : "source.as.organization.name",
+              "ignore_missing" : true,
+              "field" : "source.as.organization_name"
+            }
+          },
+          {
+            "rename" : {
+              "target_field" : "destination.as.number",
+              "ignore_missing" : true,
+              "field" : "destination.as.asn"
+            }
+          },
+          {
+            "rename" : {
+              "field" : "destination.as.organization_name",
+              "target_field" : "destination.as.organization.name",
+              "ignore_missing" : true
+            }
+          }
+    
+    ]
+  }

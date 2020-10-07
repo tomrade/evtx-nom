@@ -8,7 +8,8 @@
                 "event.type" : "start",
                 "user.name" : "%%%%winlog.event_data.targetusername",
                 "user.id" : "%%%%winlog.event_data.targetusersid",
-                "user.domain" : "%%%%winlog.event_data.targetdomainname"
+                "user.domain" : "%%%%winlog.event_data.targetdomainname",
+                "source.ip" : "%%%%winlog.event_data.ipaddress"
             },
             "4672" : {
                 "event.kind" : "event",

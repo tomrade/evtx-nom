@@ -37,6 +37,7 @@ class elastic_nom():
         self.welm_map = load_welm_map(parsing_config['welm']['mapping_file'])
         self.welm_mode = parsing_config['welm']['enabled']
         self.delete = config['delete_old_indexes']
+        self.pipeline = config['ingest_node_template']
         self.prep_es()
     def load_ecs(self,filename):
         with open(filename,'r') as in_file:
@@ -88,6 +89,11 @@ class elastic_nom():
         # if option is set, delete existing indexes, todo handle patterns
         if self.delete:
             es.indices.delete(index=self.es_index, ignore=[400, 404])
+        # put es ingest node pipeline
+        if self.pipeline:
+            with open(self.pipeline,"r") as t_file:
+                template = json.load(t_file)
+            es.ingest.put_pipeline('evtx_nom', template, params=None, headers=None)
         return es
     def ingest_file(self,filename):
         # Process 1 file ah ah ah
@@ -129,6 +135,8 @@ class elastic_nom():
                 '_index': self.es_index,
                 '_source': self.process_ecs(source)
             }
+            if self.pipeline:
+                action['pipeline'] = 'evtx_nom'
             yield action
     def parse_date(self,datestring):
         # Parse Date to Python object ISO 8601/ RFC3339

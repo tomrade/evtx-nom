@@ -128,6 +128,7 @@ becomes
             "es_api_key" : "APIKEY",
             "es_scheme" : "http",
             "index_template" : "es_stuff/index-template.json",
+            "ingest_node_template" : "es_stuff/evtxnom_pipeline.json",
             "ecs_map_file" : "es_stuff/ecs_map.json",
             "ecs_mode" : true,
             "delete_old_indexes" : false
@@ -147,6 +148,7 @@ becomes
 | es_api_key | string | base64 encoded api key (for api auth) |
 | es_scheme| string | http or https (for security you will be using https) |
 | index_template | string | path to index template, ive included one under es_stuff/index-template.json, You do not need to edit this for a custom index name as it will be done by the plugin |
+| ingest_node_template | string | path to ingest node json file, default one is provided, set to false if you dont want to use this , but it is currently used for geoip |
 | ecs_map_file | string | path to ecs map |
 | ecs_mode | string | if set to false no ecs mapping is done, the logs are still ecs structured ie under winlog.* just no processing ) |
 
