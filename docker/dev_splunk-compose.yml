@@ -3,12 +3,14 @@ version: "3"
 
 services:
   dev-splunk:
-    image: splunk:latest
+    image: splunk/splunk:latest
     container_name: dev-splunk
     environment:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_HEC_TOKEN=abcd1234pleasechangemedawg!
+      - SPLUNK_LICENSE_URI=Free
       - SPLUNK_PASSWORD
     ports:
       - 127.0.0.1:8000:8000
+      - 127.0.0.1:8088:8088
 

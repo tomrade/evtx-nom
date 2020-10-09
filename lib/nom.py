@@ -3,6 +3,8 @@ import json
 import datetime
 from elasticsearch import helpers, Elasticsearch
 import sys
+import requests
+from urllib3.exceptions import InsecureRequestWarning
 
 # This file is parsing the evtx file and any default modules
 
@@ -199,6 +201,146 @@ class elastic_nom():
             value = source.get(key) or "bork"
         return value
 
+# Elasticsearch Plugin
+class go_splunking():
+    def __init__(self,config,parsing_config):
+        self.name = "splunk HEC ingest"
+        self.splunk_host = config['splunk_host']
+        self.splunk_port = config['splunk_port']
+        self.splunk_index = config['splunk_index']
+        self.splunk_token = config['splunk_token']
+        self.scheme = config['splunk_scheme']
+        self.ecs_map = self.load_ecs(config['ecs_map_file'])
+        self.ecs_mode = config['ecs_mode']
+        self.welm_map = load_welm_map(parsing_config['welm']['mapping_file'])
+        self.welm_mode = parsing_config['welm']['enabled']
+    def load_ecs(self,filename):
+        with open(filename,'r') as in_file:
+            data = json.load(in_file)
+        # I think a flat dictionary is better for this sort of thing
+        mapping_dict = {}
+        for channel in data:
+            for provider in data[channel]:
+                for event_id in data[channel][provider]:
+                    mapping_dict[make_key(channel,provider,event_id)] =  data[channel][provider][event_id]
+        return mapping_dict
+    def prep_splunk(self):
+        # connect to splunk
+        print("creating index")
+    def send_to_hec(self,events):
+        requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
+        headers = {'Authorization': 'Splunk '+self.splunk_token}
+        splunk_uri = "{}://{}:{}/services/collector".format(self.scheme,self.splunk_host,self.splunk_port)
+        #print(splunk_uri)
+        # why does splunk HEC not support valid JSON lists for batching :( :( :(
+        batch_string = ""
+        for event in events:
+            batch_string = batch_string + json.dumps({'event' : event}) + '\n'
+        #print(event)
+        r = requests.post(splunk_uri, data=batch_string, headers=headers, verify=False)
+        return r.status_code, r.text
+    def ingest_file(self,filename):
+        # Process 1 file ah ah ah
+        print("Starting work on target {}".format(filename))
+        start = datetime.datetime.utcnow()
+        errors = 0
+        done = 0
+        bulk = 0
+        events = []
+        for event in self.prepare_actions(filename):
+            events.append(event)
+            bulk = bulk + 1
+            done = done + 1
+            if bulk == 500:
+                # flush!
+                self.send_to_hec(events)
+                bulk = 0
+                events = []
+        end = datetime.datetime.utcnow()
+        duration = end - start
+        print("Finished Processing {} in {} seconds. ingested {} out of {} events".format(filename,duration.seconds,done - errors, done))
+        return {'errors' : errors, 'done' : done}
+    def prepare_actions(self,filename):
+        # This method is a wrapper around the base nom method to add each event as a bulk index action
+        for event in nom_file(filename,self.welm_map):
+            source = {
+                'time' : event['timecreated']['systemtime'],
+                'message' : event['message'],
+                'os' : {"platform" : "windows"},
+                'host' : {"hostname" : event['computer'] },
+                'log' : {"file" : {"path" : filename}},
+                'agent' : {"name" : "evtx-nom"},
+                'event' : {
+                    "code" : event['eventid'],
+                    "original" : event['raw']
+                    }
+            }
+            event.pop('message', None)
+            event.pop('raw', None)
+            source['winlog'] = event
+            # Process the ECS!
+            action = self.process_ecs(source)
+            yield action
+    def parse_date(self,datestring):
+        # Parse Date to Python object ISO 8601/ RFC3339
+        output = datetime.datetime.fromisoformat(datestring.replace('Z','+00:00'))
+        return output
+    def process_ecs(self,source):
+        # If we are not bothering just skip all this horrible code
+        if not self.ecs_mode:
+            return source
+        # Take the source document, check if we have an ECS map for it and then if so do the things
+        key = make_key(
+                source['winlog']['channel'],
+                source['winlog']['provider']['name'],
+                source['winlog']['eventid']
+                )
+        # check if we have a map
+        if key in self.ecs_map:
+            # for each ecs field key in the map add it to the source
+            for field in self.ecs_map[key]:
+                if self.ecs_map[key][field].startswith('%%%%'):
+                    value = self.dict_fetch(source,self.ecs_map[key][field].replace('%%%%',''))
+                else:
+                    value = self.ecs_map[key][field]
+                source = self.dict_put(field,value,source)
+            return source
+        else:
+            return source
+    def dict_put(self,key,value,source):
+        # Merge ECS value back into source document , I think this works but its a bit mental to try and understand. YAY Recursive!
+        # This should build the dictionary up bringing existing paths along for the ride then
+        if '.' in key:
+            # Our key is a dot noted path ie "object.subobject.subsubobject" etc
+            key_list = key.split('.')
+            # get the leftmost subobject
+            item = key_list[0]
+            # remove this from the key for the next runs
+            key_list.pop(0)
+            # check if the subobject already exists in source object
+            if item not in source:
+                # create an empty subobject and keep going deeper into inception
+                source[item] = self.dict_put('.'.join(key_list),value,{})
+                # Whatever comes back goes into our object
+            else:
+                # we need to merge into existing subobject and keep going deeper into inception
+                source[item] = self.dict_put('.'.join(key_list),value,source[item])
+                # Whatever comes back goes into our object
+        else:
+            # key is just a field name now  so add value finally
+            source[key] = value
+        # return what we have up to previous level of inception or the exit if we back at the top 
+        return source
+
+    def dict_fetch(self,source,key):
+        if '.' in key:
+            key_list = key.split('.')
+            new_source = source[key_list[0]]
+            key_list.pop(0)
+            value = self.dict_fetch(new_source,'.'.join(key_list))
+        else:            
+            value = source.get(key) or "bork"
+        return value
 
 # Get values form EVTX-RS json which may be attributes from XML land 
 def get_value(item):

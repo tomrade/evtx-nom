@@ -29,7 +29,20 @@
             "ingest_node_template" : "es_stuff/evtxnom_pipeline.json",
             "ecs_map_file" : "es_stuff/ecs_map.json",
             "ecs_mode" : true,
-            "delete_old_indexes" : true
+            "delete_old_indexes" : true,
+            "ignore_proxy" : true
+        },
+        "splunk" : {
+            "name" : "go_splunking",
+            "enabled" : false,
+            "splunk_host" : "localhost",
+            "splunk_port" : "8088",
+            "splunk_index" : "evtx_nom",
+            "splunk_token" : "abcd1234pleasechangemedawg!",
+            "splunk_scheme" : "https",
+            "ecs_map_file" : "es_stuff/ecs_map.json",
+            "ecs_mode" : true,
+            "ignore_proxy": true
         },
         "standard_out" : {
             "name" : "stdout_nom",
