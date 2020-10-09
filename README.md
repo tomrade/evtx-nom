@@ -1,9 +1,10 @@
 # evtx-nom
-EVTX log file ingestion (no Windows required) using amazing ![evtx rust](https://github.com/omerbenamram/evtx) lib. Current output target is Elasticsearch with the hope of a modular output in the future.
+EVTX log file ingestion to Elasticsearch Or Splunk (HEC) using the amazing ![evtx](https://github.com/omerbenamram/evtx) rust library.
 
 * Elasticsearch output uses ECS common schema output (ive stayed close to winlogbeat however I use lowercase field names under winlog as I feel that is in the spirit of ECS better than the Camel Case used in winlogbeat)
 * ECS mappings are done via a config file you can add your own maps to
 * Event log message string reconstruction from the ![WELM](https://github.com/nsacyber/Windows-Event-Log-Messages/blob/master/docs/Datasets.md) project , where possible the event_data/user_data variables are put back into the string
+* Currently Splunk output also uses ECS, however future work may make it match Splunks common data format.
 
 ## Install
 
@@ -63,9 +64,23 @@ You add your input paths to the directory input and then choose one or more outp
             "es_api_key" : "APIKEY",
             "es_scheme" : "http",
             "index_template" : "es_stuff/index-template.json",
+            "ingest_node_template" : "es_stuff/evtxnom_pipeline.json",
             "ecs_map_file" : "es_stuff/ecs_map.json",
             "ecs_mode" : true,
-            "delete_old_indexes" : true
+            "delete_old_indexes" : true,
+            "ignore_proxy" : true
+        },
+        "splunk" : {
+            "name" : "go_splunking",
+            "enabled" : false,
+            "splunk_host" : "localhost",
+            "splunk_port" : "8088",
+            "splunk_index" : "evtx_nom",
+            "splunk_token" : "YOURHECTOKEN!",
+            "splunk_scheme" : "https",
+            "ecs_map_file" : "es_stuff/ecs_map.json",
+            "ecs_mode" : true,
+            "ignore_proxy": true
         },
         "standard_out" : {
             "name" : "stdout_nom",
@@ -73,7 +88,6 @@ You add your input paths to the directory input and then choose one or more outp
         }
     }
 }
-
 ```
 
 ## WELM Mapping
@@ -152,7 +166,39 @@ becomes
 | ecs_map_file | string | path to ecs map |
 | ecs_mode | string | if set to false no ecs mapping is done, the logs are still ecs structured ie under winlog.* just no processing ) |
 
-#### ECS Mapping
+### Splunk HEC "go_splunking"
+
+Mostly the same right now as Splunk is a secondary platform to me.
+
+``` json
+  "splunk" : {
+            "name" : "go_splunking",
+            "enabled" : false,
+            "splunk_host" : "localhost",
+            "splunk_port" : "8088",
+            "splunk_index" : "evtx_nom",
+            "splunk_token" : "YOURHECTOKEN!",
+            "splunk_scheme" : "https",
+            "ecs_map_file" : "es_stuff/ecs_map.json",
+            "ecs_mode" : true,
+            "ignore_proxy": true
+        }
+```
+
+| field | value type | notes |
+| --- | --- | --- |
+| name | go_splunking | it must be go_splunking |
+| enabled | bool | true or false, if true it will be used |
+| splunk_host | string | ip or host of splunk |
+| splunk_port | string | port of hec default is 8088 |
+| splunk_index | string | index to write events to |
+| splunk_token | string | HEC token |
+| splunk_scheme| string | HEC http or https (defaults to https for hec) |
+| ecs_map_file | string | path to ecs map |
+| ecs_mode | string | if set to false no ecs mapping is done, the logs are still ecs structured ie under winlog.* just no processing ) |
+
+
+## ECS Mapping
 
 The ECS map file is another JSON file. It is structured based on the channel, provider and finally the eventID
 
@@ -196,53 +242,3 @@ mapping_dict = {
 
 This is so I can find as match based on "for X in mapping_dict" rather than a nested search tree, im not if this is better/faster or not , but I feel a dictionary check in RAM would be better/faster than a DB even with memcache
 
-#### Example Elasticsearch Document "_source"
-
-``` json
-{
-  "_source": {
-    "@timestamp": "2020-07-23T15:43:04.838495Z",
-    "message": "Special privileges assigned to new logon.\r\n\r\nSubject:\r\n\tSecurity ID:\t\tS-1-5-18\r\n\tAccount Name:\t\tSYSTEM\r\n\tAccount Domain:\t\tNT AUTHORITY\r\n\tLogon ID:\t\t0x3e7\r\n\r\nPrivileges:\t\tSeAssignPrimaryTokenPrivilege\r\n\t\t\tSeTcbPrivilege\r\n\t\t\tSeSecurityPrivilege\r\n\t\t\tSeTakeOwnershipPrivilege\r\n\t\t\tSeLoadDriverPrivilege\r\n\t\t\tSeBackupPrivilege\r\n\t\t\tSeRestorePrivilege\r\n\t\t\tSeDebugPrivilege\r\n\t\t\tSeAuditPrivilege\r\n\t\t\tSeSystemEnvironmentPrivilege\r\n\t\t\tSeImpersonatePrivilege\r\n\t\t\tSeDelegateSessionUserImpersonatePrivilege",
-    "os": {
-      "platform": "windows"
-    },
-    "agent": {
-      "name": "evtx-nom"
-    },
-    "winlog": {
-      "recordid": "478982",
-      "channel": "Security",
-      "computer": "DESKTOP-J2UDBM1",
-      "correlation": {
-        "activityid": "4BD8239B-5F48-000A-C123-D84B485FD601"
-      },
-      "eventid": "4672",
-      "eventrecordid": "478982",
-      "execution": {
-        "processid": 1208,
-        "threadid": 10212
-      },
-      "keywords": "0x8020000000000000",
-      "level": "0",
-      "opcode": "0",
-      "provider": {
-        "guid": "54849625-5478-4994-A5BA-3E3B0328C30D",
-        "name": "Microsoft-Windows-Security-Auditing"
-      },
-      "task": "12548",
-      "timecreated": {
-        "systemtime": "2020-07-23T15:43:04.838495Z"
-      },
-      "version": "0",
-      "event_data": {
-        "privilegelist": "SeAssignPrimaryTokenPrivilege\r\n\t\t\tSeTcbPrivilege\r\n\t\t\tSeSecurityPrivilege\r\n\t\t\tSeTakeOwnershipPrivilege\r\n\t\t\tSeLoadDriverPrivilege\r\n\t\t\tSeBackupPrivilege\r\n\t\t\tSeRestorePrivilege\r\n\t\t\tSeDebugPrivilege\r\n\t\t\tSeAuditPrivilege\r\n\t\t\tSeSystemEnvironmentPrivilege\r\n\t\t\tSeImpersonatePrivilege\r\n\t\t\tSeDelegateSessionUserImpersonatePrivilege",
-        "subjectdomainname": "NT AUTHORITY",
-        "subjectlogonid": "0x3e7",
-        "subjectusername": "SYSTEM",
-        "subjectusersid": "S-1-5-18"
-      },
-      "xml": "{\n  \"Event\": {\n    \"#attributes\": {\n      \"xmlns\": \"http://schemas.microsoft.com/win/2004/08/events/event\"\n    },\n    \"EventData\": {\n      \"PrivilegeList\": \"SeAssignPrimaryTokenPrivilege\\r\\n\\t\\t\\tSeTcbPrivilege\\r\\n\\t\\t\\tSeSecurityPrivilege\\r\\n\\t\\t\\tSeTakeOwnershipPrivilege\\r\\n\\t\\t\\tSeLoadDriverPrivilege\\r\\n\\t\\t\\tSeBackupPrivilege\\r\\n\\t\\t\\tSeRestorePrivilege\\r\\n\\t\\t\\tSeDebugPrivilege\\r\\n\\t\\t\\tSeAuditPrivilege\\r\\n\\t\\t\\tSeSystemEnvironmentPrivilege\\r\\n\\t\\t\\tSeImpersonatePrivilege\\r\\n\\t\\t\\tSeDelegateSessionUserImpersonatePrivilege\",\n      \"SubjectDomainName\": \"NT AUTHORITY\",\n      \"SubjectLogonId\": \"0x3e7\",\n      \"SubjectUserName\": \"SYSTEM\",\n      \"SubjectUserSid\": \"S-1-5-18\"\n    },\n    \"System\": {\n      \"Channel\": \"Security\",\n      \"Computer\": \"DESKTOP-J2UDBM1\",\n      \"Correlation\": {\n        \"#attributes\": {\n          \"ActivityID\": \"4BD8239B-5F48-000A-C123-D84B485FD601\"\n        }\n      },\n      \"EventID\": 4672,\n      \"EventRecordID\": 478982,\n      \"Execution\": {\n        \"#attributes\": {\n          \"ProcessID\": 1208,\n          \"ThreadID\": 10212\n        }\n      },\n      \"Keywords\": \"0x8020000000000000\",\n      \"Level\": 0,\n      \"Opcode\": 0,\n      \"Provider\": {\n        \"#attributes\": {\n          \"Guid\": \"54849625-5478-4994-A5BA-3E3B0328C30D\",\n          \"Name\": \"Microsoft-Windows-Security-Auditing\"\n        }\n      },\n      \"Security\": null,\n      \"Task\": 12548,\n      \"TimeCreated\": {\n        \"#attributes\": {\n          \"SystemTime\": \"2020-07-23T15:43:04.838495Z\"\n        }\n      },\n      \"Version\": 0\n    }\n  }\n}"
-    }
-  }
-}
-```
