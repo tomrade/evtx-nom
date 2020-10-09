@@ -235,9 +235,11 @@ class go_splunking():
         # why does splunk HEC not support valid JSON lists for batching :( :( :(
         batch_string = ""
         for event in events:
-            batch_string = batch_string + json.dumps({'event' : event}) + '\n'
+            #print(self.parse_date(event['time']).timestamp())
+            batch_string = batch_string + json.dumps({'event' : event, "time": self.parse_date(event['time']).timestamp(), "sourcetype" : "evtxnom"}) + '\n'
         #print(event)
         r = requests.post(splunk_uri, data=batch_string, headers=headers, verify=False)
+        #print(r.text)
         return r.status_code, r.text
     def ingest_file(self,filename):
         # Process 1 file ah ah ah
