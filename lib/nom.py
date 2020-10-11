@@ -258,6 +258,8 @@ class go_splunking():
                 self.send_to_hec(events)
                 bulk = 0
                 events = []
+        if bulk != 0:
+            self.send_to_hec(events)
         end = datetime.datetime.utcnow()
         duration = end - start
         print("Finished Processing {} in {} seconds. ingested {} out of {} events".format(filename,duration.seconds,done - errors, done))
