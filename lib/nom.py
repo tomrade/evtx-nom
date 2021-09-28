@@ -148,24 +148,31 @@ class elastic_nom():
         # If we are not bothering just skip all this horrible code
         if not self.ecs_mode:
             return source
-        # Take the source document, check if we have an ECS map for it and then if so do the things
-        key = make_key(
+        try:
+            # Take the source document, check if we have an ECS map for it and then if so do the things
+            key = make_key(
                 source['winlog']['channel'],
                 source['winlog']['provider']['name'],
                 source['winlog']['eventid']
                 )
         # check if we have a map
-        if key in self.ecs_map:
-            # for each ecs field key in the map add it to the source
-            for field in self.ecs_map[key]:
-                if self.ecs_map[key][field].startswith('%%%%'):
-                    value = self.dict_fetch(source,self.ecs_map[key][field].replace('%%%%',''))
-                else:
-                    value = self.ecs_map[key][field]
-                source = self.dict_put(field,value,source)
+            if key in self.ecs_map:
+                # for each ecs field key in the map add it to the source
+                for field in self.ecs_map[key]:
+                    if self.ecs_map[key][field].startswith('%%%%'):
+                        value = self.dict_fetch(source,self.ecs_map[key][field].replace('%%%%',''))
+                    else:
+                        value = self.ecs_map[key][field]
+                    source = self.dict_put(field,value,source)
+                return source
+            else:
+                return source
+        except KeyError as errormsg:
+            print("Unable to ECS map object keyerror")
+            print(json.dumps(source,indent=4))
+            print(errormsg)
             return source
-        else:
-            return source
+
     def dict_put(self,key,value,source):
         # Merge ECS value back into source document , I think this works but its a bit mental to try and understand. YAY Recursive!
         # This should build the dictionary up bringing existing paths along for the ride then
@@ -391,62 +398,67 @@ def nom_file(filename,welm_map):
     # Open Records
     for record in parser.records_json():
         data = json.loads(record['data'])
-        # Event Log event
-        event = {'recordid': str(record['event_record_id'])}
-        event.update(get_section(data['Event']['System']))
-        if data['Event'].get('EventData'):
-            event['event_data'] = get_section(data['Event']['EventData'])
-        if data['Event'].get('UserData'):
-            #print(data['Event'].get('UserData'))
-            if data['Event']['UserData'].get('EventXML'):
-                event['event_data'] = get_section(data['Event']['UserData']['EventXML'])
-            else:
-                # not sure about what other namesspaces are here so for now just this loop
-                for ns in data['Event']['UserData']:
-                    event['event_data'] = get_section(data['Event']['UserData'][ns])
-        if isinstance(event['eventid'], dict):
-            print(event['eventid'])
-            print("#"*20)
-            print(json.dumps(event,indent=3))
-            print("#"*20)
-            print(json.dumps(data,indent=3))
-        key = make_key(
-            event['channel'],
-            event['provider']['name'],
-            event['eventid']
-            )
-        if key in welm_map:
-            if welm_map[key]['swap_mode'] and welm_map[key]['params'] != []:
-                if event.get('event_data') or False:
-                    swap_target = 'event_data'
-                elif event.get('user_data') or False:
-                    swap_target = 'user_data'
+        try:
+            # Event Log event
+            event = {'recordid': str(record['event_record_id'])}
+            event.update(get_section(data['Event']['System']))
+            if data['Event'].get('EventData'):
+                event['event_data'] = get_section(data['Event']['EventData'])
+            if data['Event'].get('UserData'):
+                #print(data['Event'].get('UserData'))
+                if data['Event']['UserData'].get('EventXML'):
+                    event['event_data'] = get_section(data['Event']['UserData']['EventXML'])
                 else:
-                    swap_target = None
-                    event['message'] = welm_map[key]['format_string']
-                if swap_target:
-                    swap_values = ['bump']
-                    for param in welm_map[key]['params']:
-                        swap_values.append(event[swap_target].get(param) or "")
+                    # not sure about what other namesspaces are here so for now just this loop
+                    for ns in data['Event']['UserData']:
+                        event['event_data'] = get_section(data['Event']['UserData'][ns])
+            if isinstance(event['eventid'], dict):
+                print(event['eventid'])
+                print("#"*20)
+                print(json.dumps(event,indent=3))
+                print("#"*20)
+                print(json.dumps(data,indent=3))
+            key = make_key(
+                event.get('channel') or '',
+                event['provider']['name'],
+                event['eventid']
+                )
+            if key in welm_map:
+                if welm_map[key]['swap_mode'] and welm_map[key]['params'] != []:
+                    if event.get('event_data') or False:
+                        swap_target = 'event_data'
+                    elif event.get('user_data') or False:
+                        swap_target = 'user_data'
+                    else:
+                        swap_target = None
+                        event['message'] = welm_map[key]['format_string']
+                    if swap_target:
+                        swap_values = ['bump']
+                        for param in welm_map[key]['params']:
+                            swap_values.append(event[swap_target].get(param) or "")
                     #print(key)
                     #print(welm_map[key]['format_string'])
                     #print(welm_map[key]['params'])
                     #print(swap_values)
-                    try:
-                        event['message'] = welm_map[key]['format_string'].format(*swap_values)
-                    except:
-                        event['message'] = welm_map[key]['format_string']
+                        try:
+                            event['message'] = welm_map[key]['format_string'].format(*swap_values)
+                        except:
+                            event['message'] = welm_map[key]['format_string']
+                else:
+                    event['message'] = welm_map[key]['format_string']
             else:
-                event['message'] = welm_map[key]['format_string']
-        else:
-            event['message'] = "{} | {} | {} | Unknown Message String".format(
+                event['message'] = "{} | {} | {} | Unknown Message String".format(
                 event['eventid'],
-                event['channel'],
+                event.get('channel') or '',
                 event['provider']['name']
                 )
-        # Raw Document
-        event['raw'] = record['data']
-        yield event
+            # Raw Document
+            event['raw'] = record['data']
+            yield event
+        except KeyError as errormsg:
+            print("Soemthing went wrong parsing this event")
+            print(json.dumps(data,indent=4))
+        
 
 # make matching key
 def make_key(channel,provider,event_id):
